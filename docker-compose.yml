@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: geo_system_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: geo_system
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: geo_system_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: geo_system_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 8080
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: geo_system
+      DB_SSLMODE: disable
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      REDIS_DB: 0
+      WEBHOOK_URL: http://webhook-stub:9090/webhook
+      WEBHOOK_RETRY_ATTEMPTS: 3
+      WEBHOOK_RETRY_DELAY: 5s
+      WEBHOOK_TIMEOUT: 10s
+      STATS_TIME_WINDOW_MINUTES: 60
+      API_KEY: default-api-key-change-in-production
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./migrations:/migrations
+
+  webhook-stub:
+    build:
+      context: .
+      dockerfile: Dockerfile.webhookstub
+    container_name: geo_system_webhook_stub
+    ports:
+      - "9090:9090"
+
+volumes:
+  postgres_data:
+  redis_data:
+
