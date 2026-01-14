@@ -22,7 +22,7 @@ Backend-сервис на Go для системы геооповещений. �
 
 ```bash
 # Клонируем репозиторий
-git clone <repository-url>
+git clone https://github.com/Oniqq60/geo_core/tree/main 
 cd Geo_system_core
 
 # Запускаем все сервисы
