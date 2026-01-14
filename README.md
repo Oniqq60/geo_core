@@ -403,18 +403,3 @@ chmod +x scripts/test_api.sh
 ```
 migrations/002_add_new_field.sql
 ```
-
-### Запуск в режиме разработки
-
-```bash
-# Установите air для hot reload
-go install github.com/cosmtrek/air@latest
-
-# Запустите с hot reload
-air
-```
-
-## Лицензия
-
-MIT
-
